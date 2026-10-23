@@ -67,8 +67,7 @@ function Tools.activate_skill()
           return { status = "error", data = "Skill not found: " .. args.skill_name }
         end
 
-        local skill_id =
-          string.format("<editor_context>skill:%s</editor_context>", args.skill_name)
+        local skill_id = string.format("<editor_context>skill:%s</editor_context>", args.skill_name)
         local context_items = (self and self.chat and self.chat.context_items) or {}
         for _, ctx in ipairs(context_items) do
           if ctx.id == skill_id then
@@ -88,7 +87,10 @@ function Tools.activate_skill()
       success = function(self, output, meta)
         local skill = output[#output] ---@type CodeCompanion.AgentSkills.Skill
         local for_user = string.format("Activated skill: %s", skill:name())
-        meta.tools.chat:add_tool_output(self, skill:read_content(), for_user)
+        meta.tools.chat:add_tool_output(
+          self,
+          { content = skill:read_content(), display = for_user }
+        )
       end,
       error = function(self, output, meta)
         local error_msg = string.format(
@@ -96,7 +98,7 @@ function Tools.activate_skill()
           self.args.skill_name,
           output[#output]
         )
-        meta.tools.chat:add_tool_output(self, error_msg)
+        meta.tools.chat:add_tool_output(self, { content = error_msg })
       end,
     },
   }
@@ -154,7 +156,7 @@ function Tools.load_skill_file()
           self.args.skill_name,
           self.args.file_path
         )
-        meta.tools.chat:add_tool_output(self, content, for_user)
+        meta.tools.chat:add_tool_output(self, { content = content, display = for_user })
       end,
       error = function(self, output, meta)
         local error_msg = string.format(
@@ -163,7 +165,7 @@ function Tools.load_skill_file()
           self.args.file_path,
           output[#output]
         )
-        meta.tools.chat:add_tool_output(self, error_msg)
+        meta.tools.chat:add_tool_output(self, { content = error_msg })
       end,
     },
   }
@@ -334,7 +336,7 @@ Note: Only interpreters that support dependencies can use the 'dependencies' par
         local output = output[#output]
         local argv = { self.args.interpreter, self.args.script_path, unpack(self.escaped_args) }
         local for_user = string.format("Run skill script successfully: %s", table.concat(argv, " "))
-        meta.tools.chat:add_tool_output(self, output, for_user)
+        meta.tools.chat:add_tool_output(self, { content = output, display = for_user })
       end,
 
       error = function(self, output, meta)
@@ -345,7 +347,7 @@ Note: Only interpreters that support dependencies can use the 'dependencies' par
           table.concat(parts, " "),
           error_msg
         )
-        meta.tools.chat:add_tool_output(self, error_msg, for_user)
+        meta.tools.chat:add_tool_output(self, { content = error_msg, display = for_user })
       end,
     },
   }
